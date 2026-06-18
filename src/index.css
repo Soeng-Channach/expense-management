@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light theme surfaces (RGB triplets for Tailwind alpha support) */
+    --canvas: 244 246 251;
+    --surface: 255 255 255;
+    --surface-muted: 248 250 252;
+    --border: 226 232 240;
+    --content: 15 23 42;
+    --content-muted: 100 116 139;
+  }
+
+  .dark {
+    /* Dark theme surfaces */
+    --canvas: 10 14 25;
+    --surface: 22 28 43;
+    --surface-muted: 30 38 56;
+    --border: 44 54 76;
+    --content: 226 232 240;
+    --content-muted: 148 163 184;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-canvas text-content font-sans antialiased;
+    /* Respect device notches / home indicators */
+    padding-top: env(safe-area-inset-top);
+    overscroll-behavior-y: none;
+  }
+
+  /* Hide number input spinners for a cleaner amount field */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl bg-surface border border-border shadow-card;
+  }
+
+  .input-base {
+    @apply w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm
+      text-content placeholder:text-content-muted/70 outline-none transition
+      focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30;
+  }
+
+  .label-base {
+    @apply mb-1.5 block text-sm font-medium text-content-muted;
+  }
+
+  /* Subtle custom scrollbar */
+  .scroll-area {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--border)) transparent;
+  }
+  .scroll-area::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scroll-area::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+  }
+}
+
+/* Safe-area helpers for the mobile bottom navigation */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+}
+.bottom-safe {
+  bottom: calc(env(safe-area-inset-bottom) + 1rem);
+}
