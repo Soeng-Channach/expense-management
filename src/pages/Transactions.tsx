@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
+import { Dropdown } from '@/components/ui/Dropdown';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { TransactionList } from '@/components/transactions/TransactionList';
 import { useTransactions } from '@/hooks/useTransactions';
@@ -29,6 +29,39 @@ export function Transactions() {
 
   const totals = useMemo(() => summarize(transactions), [transactions]);
 
+  // Build category filter options (unique names; a color dot as the leading visual).
+  const categoryOptions = useMemo(() => {
+    const relevant = categories.filter((c) => type === 'all' || c.type === type);
+    const seen = new Set<string>();
+    const opts = [{ value: '', label: 'All categories' }] as {
+      value: string;
+      label: string;
+      leading?: JSX.Element;
+    }[];
+    for (const c of relevant) {
+      if (seen.has(c.name)) continue;
+      seen.add(c.name);
+      opts.push({
+        value: c.name,
+        label: c.name,
+        leading: (
+          <span
+            className="h-2.5 w-2.5 rounded-full"
+            style={{ backgroundColor: c.color ?? '#94a3b8' }}
+          />
+        ),
+      });
+    }
+    return opts;
+  }, [categories, type]);
+
+  // Reset the category filter if it's no longer valid for the selected type.
+  useEffect(() => {
+    if (category && !categoryOptions.some((o) => o.value === category)) {
+      setCategory('');
+    }
+  }, [categoryOptions, category]);
+
   return (
     <div className="space-y-4">
       {/* Filters */}
@@ -50,16 +83,12 @@ export function Transactions() {
               { value: 'expense', label: 'Expense' },
             ]}
           />
-          <Select value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option value="">All categories</option>
-            {categories
-              .filter((c) => type === 'all' || c.type === type)
-              .map((c) => (
-                <option key={c.id} value={c.name}>
-                  {c.name} · {c.type}
-                </option>
-              ))}
-          </Select>
+          <Dropdown
+            value={category}
+            onChange={setCategory}
+            options={categoryOptions}
+            placeholder="All categories"
+          />
         </div>
       </Card>
 

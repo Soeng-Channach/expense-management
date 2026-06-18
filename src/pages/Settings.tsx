@@ -11,8 +11,9 @@ import {
 } from 'lucide-react';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Select } from '@/components/ui/Select';
+import { Dropdown } from '@/components/ui/Dropdown';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { currencySymbol } from '@/lib/format';
 import { useTheme } from '@/context/ThemeContext';
 import { useSettings } from '@/hooks/useSettings';
 import { useToast } from '@/context/ToastContext';
@@ -26,9 +27,37 @@ import { downloadJSON, readFileAsText } from '@/lib/download';
 import { cn } from '@/lib/cn';
 import type { BackupFile } from '@/types';
 
-const CURRENCIES = [
-  'USD', 'EUR', 'GBP', 'JPY', 'KRW', 'CNY', 'INR', 'AUD', 'CAD', 'CHF', 'SGD', 'BRL',
+const CURRENCIES: { code: string; name: string }[] = [
+  { code: 'USD', name: 'US Dollar' },
+  { code: 'KHR', name: 'Cambodian Riel' },
+  { code: 'THB', name: 'Thai Baht' },
+  { code: 'VND', name: 'Vietnamese Dong' },
+  { code: 'EUR', name: 'Euro' },
+  { code: 'GBP', name: 'British Pound' },
+  { code: 'JPY', name: 'Japanese Yen' },
+  { code: 'KRW', name: 'South Korean Won' },
+  { code: 'CNY', name: 'Chinese Yuan' },
+  { code: 'SGD', name: 'Singapore Dollar' },
+  { code: 'INR', name: 'Indian Rupee' },
+  { code: 'AUD', name: 'Australian Dollar' },
+  { code: 'CAD', name: 'Canadian Dollar' },
+  { code: 'CHF', name: 'Swiss Franc' },
+  { code: 'BRL', name: 'Brazilian Real' },
 ];
+
+const currencyOptions = CURRENCIES.map((c) => {
+  const symbol = currencySymbol(c.code);
+  return {
+    value: c.code,
+    label: c.code,
+    description: c.name,
+    leading: (
+      <span className="flex h-7 min-w-7 items-center justify-center rounded-lg bg-surface-muted px-1.5 text-sm font-semibold text-content">
+        {symbol === c.code ? <Coins className="h-4 w-4 text-content-muted" /> : symbol}
+      </span>
+    ),
+  };
+});
 
 interface ToggleProps {
   checked: boolean;
@@ -148,17 +177,13 @@ export function Settings() {
               <p className="text-xs text-content-muted">Used across the app</p>
             </div>
           </div>
-          <div className="w-32">
-            <Select
+          <div className="w-36">
+            <Dropdown
               value={settings.currency}
-              onChange={(e) => update({ currency: e.target.value })}
-            >
-              {CURRENCIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </Select>
+              onChange={(currency) => update({ currency })}
+              options={currencyOptions}
+              menuClassName="right-0 w-64"
+            />
           </div>
         </div>
       </Card>

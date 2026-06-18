@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Input } from '@/components/ui/Input';
-import { Select } from '@/components/ui/Select';
+import { Dropdown } from '@/components/ui/Dropdown';
 import { useCategories } from '@/hooks/useCategories';
 import { useToast } from '@/context/ToastContext';
 import { currencySymbol } from '@/lib/format';
+import { getIcon } from '@/lib/icons';
 import { todayISO } from '@/lib/date';
 import { addTransaction, updateTransaction } from '@/db/repository';
 import type { Transaction, TransactionType } from '@/types';
@@ -38,6 +39,7 @@ export function TransactionForm({
 
   const {
     register,
+    control,
     handleSubmit,
     watch,
     setValue,
@@ -55,6 +57,23 @@ export function TransactionForm({
   const type = watch('type');
   const selectedCategory = watch('category');
   const options = byType[type];
+
+  const categoryOptions = options.map((c) => {
+    const Icon = getIcon(c.icon);
+    const color = c.color ?? '#94a3b8';
+    return {
+      value: c.name,
+      label: c.name,
+      leading: (
+        <span
+          className="flex h-6 w-6 items-center justify-center rounded-full"
+          style={{ backgroundColor: `${color}1f`, color }}
+        >
+          <Icon className="h-3.5 w-3.5" />
+        </span>
+      ),
+    };
+  });
 
   // Ensure a valid category is always selected for the active type.
   useEffect(() => {
@@ -118,17 +137,21 @@ export function TransactionForm({
         })}
       />
 
-      <Select
-        label="Category"
-        error={errors.category?.message}
-        {...register('category', { required: 'Pick a category' })}
-      >
-        {options.map((c) => (
-          <option key={c.id} value={c.name}>
-            {c.name}
-          </option>
-        ))}
-      </Select>
+      <Controller
+        control={control}
+        name="category"
+        rules={{ required: 'Pick a category' }}
+        render={({ field }) => (
+          <Dropdown
+            label="Category"
+            value={field.value}
+            onChange={field.onChange}
+            options={categoryOptions}
+            error={errors.category?.message}
+            placeholder="Select a category"
+          />
+        )}
+      />
 
       <Input
         label="Description"

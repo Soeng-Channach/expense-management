@@ -26,8 +26,17 @@ export function formatPercent(value: number, fractionDigits = 0): string {
   return `${value.toFixed(fractionDigits)}%`;
 }
 
+/**
+ * Symbols for currencies where the JS `Intl` engine returns the ISO code
+ * instead of the local symbol (e.g. Khmer Riel).
+ */
+const SYMBOL_OVERRIDES: Record<string, string> = {
+  KHR: '៛',
+};
+
 /** Returns the currency symbol for a code (best-effort, falls back to code). */
 export function currencySymbol(currency = 'USD'): string {
+  if (SYMBOL_OVERRIDES[currency]) return SYMBOL_OVERRIDES[currency];
   try {
     const parts = new Intl.NumberFormat(undefined, {
       style: 'currency',
