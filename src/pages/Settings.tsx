@@ -30,7 +30,6 @@ import type { BackupFile } from '@/types';
 const CURRENCIES: { code: string; name: string }[] = [
   { code: 'USD', name: 'US Dollar' },
   { code: 'KHR', name: 'Cambodian Riel' },
-  { code: 'THB', name: 'Thai Baht' },
   { code: 'VND', name: 'Vietnamese Dong' },
   { code: 'EUR', name: 'Euro' },
   { code: 'GBP', name: 'British Pound' },
