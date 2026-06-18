@@ -23,6 +23,7 @@ import {
   validateBackup,
 } from '@/db/repository';
 import { downloadJSON, readFileAsText } from '@/lib/download';
+import { cn } from '@/lib/cn';
 import type { BackupFile } from '@/types';
 
 const CURRENCIES = [
@@ -38,18 +39,22 @@ interface ToggleProps {
 function Toggle({ checked, onChange, label }: ToggleProps) {
   return (
     <button
+      type="button"
       role="switch"
       aria-checked={checked}
       aria-label={label}
       onClick={onChange}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+      className={cn(
+        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
         checked ? 'bg-brand-600' : 'bg-border'
-      }`}
+      )}
     >
       <span
-        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-          checked ? 'translate-x-[22px]' : 'translate-x-0.5'
-        }`}
+        className={cn(
+          'inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200',
+          checked ? 'translate-x-[1.375rem]' : 'translate-x-0.5'
+        )}
       />
     </button>
   );
