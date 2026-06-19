@@ -95,7 +95,10 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: true,
+        // Keep the service worker OFF during `vite dev` so it never serves
+        // stale cached JS while developing. The production build (`vite build`)
+        // still generates a full service worker, so the PWA is unaffected.
+        enabled: false,
         type: 'module',
       },
     }),
