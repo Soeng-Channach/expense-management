@@ -7,18 +7,7 @@ export interface CurrencyInfo {
 export const CURRENCIES: CurrencyInfo[] = [
   { code: 'USD', name: 'US Dollar' },
   { code: 'KHR', name: 'Cambodian Riel' },
-  { code: 'VND', name: 'Vietnamese Dong' },
-  { code: 'EUR', name: 'Euro' },
-  { code: 'GBP', name: 'British Pound' },
-  { code: 'JPY', name: 'Japanese Yen' },
   { code: 'KRW', name: 'South Korean Won' },
-  { code: 'CNY', name: 'Chinese Yuan' },
-  { code: 'SGD', name: 'Singapore Dollar' },
-  { code: 'INR', name: 'Indian Rupee' },
-  { code: 'AUD', name: 'Australian Dollar' },
-  { code: 'CAD', name: 'Canadian Dollar' },
-  { code: 'CHF', name: 'Swiss Franc' },
-  { code: 'BRL', name: 'Brazilian Real' },
 ];
 
 /**
@@ -29,18 +18,7 @@ export const CURRENCIES: CurrencyInfo[] = [
 export const RATE_PER_USD: Record<string, number> = {
   USD: 1,
   KHR: 4100,
-  VND: 25400,
-  EUR: 0.92,
-  GBP: 0.79,
-  JPY: 156,
   KRW: 1370,
-  CNY: 7.2,
-  SGD: 1.34,
-  INR: 83.5,
-  AUD: 1.52,
-  CAD: 1.37,
-  CHF: 0.88,
-  BRL: 5.6,
 };
 
 /** Suggested cross-rate from one currency to another (via USD). */
