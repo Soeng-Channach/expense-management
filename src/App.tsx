@@ -7,6 +7,8 @@ import { Reports } from '@/pages/Reports';
 import { Categories } from '@/pages/Categories';
 import { Settings } from '@/pages/Settings';
 import { NotFound } from '@/pages/NotFound';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { RouteError } from '@/components/RouteError';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { TransactionModalProvider } from '@/context/TransactionModalContext';
@@ -15,6 +17,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
+    errorElement: <RouteError />,
     children: [
       { index: true, element: <Dashboard /> },
       { path: 'transactions', element: <Transactions /> },
@@ -29,12 +32,14 @@ const router = createBrowserRouter([
 
 export default function App() {
   return (
-    <ToastProvider>
-      <ThemeProvider>
-        <TransactionModalProvider>
-          <RouterProvider router={router} />
-        </TransactionModalProvider>
-      </ThemeProvider>
-    </ToastProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <ThemeProvider>
+          <TransactionModalProvider>
+            <RouterProvider router={router} />
+          </TransactionModalProvider>
+        </ThemeProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }

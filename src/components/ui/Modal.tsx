@@ -47,7 +47,10 @@ export function Modal({
       role="dialog"
       aria-modal="true"
     >
-      <div
+      <button
+        type="button"
+        aria-label="Close"
+        tabIndex={-1}
         className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />

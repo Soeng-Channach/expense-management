@@ -125,6 +125,9 @@ export function TransactionForm({
         type="number"
         step="0.01"
         inputMode="decimal"
+        // Focusing the first field of a dialog the user opened is expected
+        // ARIA dialog behaviour, so autoFocus is intentional here.
+        // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus
         prefix={currencySymbol(currency)}
         placeholder="0.00"

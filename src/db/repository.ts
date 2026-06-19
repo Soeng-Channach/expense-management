@@ -1,6 +1,13 @@
 import { db, ensureSettings } from './database';
 import { DEFAULT_CATEGORIES, DEFAULT_SETTINGS } from './seed';
-import type { Transaction, Category, Settings, BackupFile } from '@/types';
+import type {
+  Transaction,
+  Category,
+  Budget,
+  Settings,
+  TransactionType,
+  BackupFile,
+} from '@/types';
 
 const BACKUP_VERSION = 1;
 
@@ -119,15 +126,75 @@ export async function exportData(): Promise<BackupFile> {
   };
 }
 
+function isTransactionType(v: unknown): v is TransactionType {
+  return v === 'income' || v === 'expense';
+}
+
+function isFiniteNumber(v: unknown): v is number {
+  return typeof v === 'number' && Number.isFinite(v);
+}
+
+function isValidTransaction(v: unknown): v is Transaction {
+  if (!v || typeof v !== 'object') return false;
+  const t = v as Record<string, unknown>;
+  return (
+    isTransactionType(t.type) &&
+    isFiniteNumber(t.amount) &&
+    typeof t.category === 'string' &&
+    typeof t.description === 'string' &&
+    typeof t.date === 'string' &&
+    isFiniteNumber(t.createdAt)
+  );
+}
+
+function isValidCategory(v: unknown): v is Category {
+  if (!v || typeof v !== 'object') return false;
+  const c = v as Record<string, unknown>;
+  return typeof c.name === 'string' && c.name.length > 0 && isTransactionType(c.type);
+}
+
+function isValidBudget(v: unknown): v is Budget {
+  if (!v || typeof v !== 'object') return false;
+  const b = v as Record<string, unknown>;
+  return (
+    typeof b.month === 'string' &&
+    /^\d{4}-\d{2}$/.test(b.month) &&
+    isFiniteNumber(b.amount)
+  );
+}
+
+function isValidSettings(v: unknown): v is Settings {
+  if (!v || typeof v !== 'object') return false;
+  const s = v as Record<string, unknown>;
+  return typeof s.darkMode === 'boolean' && typeof s.currency === 'string';
+}
+
+/**
+ * Type-guards an unknown value as a restorable backup. Because importing
+ * *replaces all local data*, this validates every record's shape — not just the
+ * envelope — so a malformed file can never overwrite good data with garbage.
+ * Backups from a newer app version (higher `version`) are rejected.
+ */
 export function validateBackup(value: unknown): value is BackupFile {
   if (!value || typeof value !== 'object') return false;
   const v = value as Partial<BackupFile>;
   if (v.app !== 'track-expense') return false;
+  if (typeof v.version !== 'number' || v.version > BACKUP_VERSION) return false;
   if (!v.data || typeof v.data !== 'object') return false;
+  const { transactions, categories, budgets, settings } = v.data;
+  if (
+    !Array.isArray(transactions) ||
+    !Array.isArray(categories) ||
+    !Array.isArray(budgets)
+  ) {
+    return false;
+  }
+  if (settings !== undefined && !Array.isArray(settings)) return false;
   return (
-    Array.isArray(v.data.transactions) &&
-    Array.isArray(v.data.categories) &&
-    Array.isArray(v.data.budgets)
+    transactions.every(isValidTransaction) &&
+    categories.every(isValidCategory) &&
+    budgets.every(isValidBudget) &&
+    (settings === undefined || settings.every(isValidSettings))
   );
 }
 

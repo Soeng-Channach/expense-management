@@ -42,11 +42,19 @@ your device in IndexedDB.
 ## 🚀 Getting Started
 
 ```bash
-npm install      # install dependencies
-npm run dev      # start the dev server (http://localhost:5173)
-npm run build    # type-check + production build to /dist
-npm run preview  # preview the production build (service worker active)
+npm install        # install dependencies
+npm run dev        # start the dev server (http://localhost:5173)
+npm run build      # type-check + production build to /dist
+npm run preview    # preview the production build (service worker active)
+
+npm run lint       # ESLint (TypeScript + react-hooks + jsx-a11y)
+npm run typecheck  # tsc project type-check (no emit)
+npm test           # run the Vitest unit suite
+npm run test:watch # Vitest in watch mode
 ```
+
+All four checks (`lint`, `typecheck`, `test`, `build`) also run in CI on every
+push and pull request — see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 > The service worker is enabled in dev (`devOptions.enabled`), so you can test
 > offline behavior and the install prompt locally. To test installation, run
@@ -67,7 +75,9 @@ track-expense/
 │   │   ├── dashboard/           # StatCard
 │   │   ├── layout/              # Sidebar, BottomNav, Header, Layout, nav config
 │   │   ├── transactions/        # TransactionForm, List, Item
-│   │   ├── ui/                  # Button, Card, Modal, Input, Select, etc.
+│   │   ├── ui/                  # Button, Card, Modal, Input, Dropdown, etc.
+│   │   ├── ErrorBoundary.tsx    # app-wide render-error fallback
+│   │   ├── RouteError.tsx       # router errorElement
 │   │   ├── FloatingAddButton.tsx
 │   │   ├── InstallPrompt.tsx
 │   │   └── PWABadge.tsx

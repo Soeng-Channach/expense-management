@@ -176,6 +176,10 @@ export function Dropdown({
             const isSelected = opt.value === value;
             const isActive = i === activeIndex;
             return (
+              // Keyboard selection is handled centrally on the trigger button
+              // (Enter/Space commits the active option), per the listbox pattern,
+              // so the option itself needs only a mouse click handler.
+              // eslint-disable-next-line jsx-a11y/click-events-have-key-events
               <li
                 key={opt.value}
                 role="option"

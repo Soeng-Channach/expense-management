@@ -93,6 +93,9 @@ export function CategoryFormModal({
         <Input
           label="Name"
           value={name}
+          // Moving focus into a dialog the user just opened is the expected
+          // ARIA dialog behaviour, so autoFocus is intentional here.
+          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           maxLength={30}
           placeholder="e.g. Groceries"
