@@ -1,9 +1,9 @@
 /**
  * Generates PWA PNG icons with no native dependencies.
  *
- * Draws the TrackExpense logo (gradient rounded square + ascending white bars
- * + an accent dot) into raw RGBA pixels, then encodes them as PNG using only
- * Node's built-in `zlib`. Run with: `node scripts/generate-icons.mjs`.
+ * Draws the TrackExpense logo (gradient rounded square + an ascending white
+ * trend arrow + an emerald accent dot) into raw RGBA pixels, then encodes them
+ * as PNG using only Node's built-in `zlib`. Run with: `node scripts/generate-icons.mjs`.
  */
 import { deflateSync } from 'node:zlib';
 import { writeFileSync, mkdirSync } from 'node:fs';
@@ -63,6 +63,16 @@ function lerp(a, b, t) {
   return Math.round(a + (b - a) * t);
 }
 
+// shortest distance from point (qx,qy) to the segment (ax,ay)-(bx,by)
+function distToSeg(qx, qy, ax, ay, bx, by) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const len2 = dx * dx + dy * dy;
+  let t = len2 ? ((qx - ax) * dx + (qy - ay) * dy) / len2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(qx - (ax + t * dx), qy - (ay + t * dy));
+}
+
 function drawIcon(size, { maskable = false } = {}) {
   const rgba = Buffer.alloc(size * size * 4); // transparent by default
   const radius = maskable ? 0 : size * 0.22;
@@ -99,46 +109,53 @@ function drawIcon(size, { maskable = false } = {}) {
     }
   }
 
-  // three ascending white rounded bars (a bar chart)
-  const bars = [
-    { h: 0.30, x: 0.23 },
-    { h: 0.48, x: 0.42 },
-    { h: 0.70, x: 0.61 },
+  // alpha-composite a colour over an already-painted (opaque) pixel
+  const blend = (x, y, r, g, b, a) => {
+    if (x < 0 || y < 0 || x >= size || y >= size || a <= 0) return;
+    const i = (y * size + x) * 4;
+    const ia = 1 - a;
+    rgba[i] = Math.round(r * a + rgba[i] * ia);
+    rgba[i + 1] = Math.round(g * a + rgba[i + 1] * ia);
+    rgba[i + 2] = Math.round(b * a + rgba[i + 2] * ia);
+    rgba[i + 3] = Math.max(rgba[i + 3], Math.round(255 * a));
+  };
+
+  // ascending white trend arrow (shaft + arrowhead), coordinates as
+  // fractions of the inner safe area so it scales with maskable padding
+  const fx = (f) => pad + inner * f;
+  const fy = (f) => pad + inner * f;
+  const P0 = [fx(0.289), fy(0.703)]; // start of the trend line
+  const P1 = [fx(0.492), fy(0.586)]; // mid bend
+  const P2 = [fx(0.703), fy(0.344)]; // arrow tip
+  const B1 = [fx(0.555), fy(0.387)]; // upper arrowhead barb
+  const B2 = [fx(0.676), fy(0.496)]; // lower arrowhead barb
+  const segs = [
+    [P0, P1],
+    [P1, P2],
+    [B1, P2],
+    [P2, B2],
   ];
-  const barW = inner * 0.14;
-  const barR = barW * 0.32;
-  for (const bar of bars) {
-    const bx = pad + inner * bar.x;
-    const bh = inner * bar.h;
-    const by = pad + inner * 0.84 - bh;
-    for (let y = 0; y < bh; y++) {
-      for (let x = 0; x < barW; x++) {
-        // rounded bar tops
-        const ry = Math.min(y, bh - 1 - y);
-        const rx = Math.min(x, barW - 1 - x);
-        if (ry < barR && rx < barR) {
-          const dx = barR - rx;
-          const dy = barR - ry;
-          if (dx * dx + dy * dy > barR * barR) continue;
-        }
-        const px = Math.round(bx + x);
-        const py = Math.round(by + y);
-        if (px >= 0 && py >= 0 && px < size && py < size) set(px, py, 255, 255, 255);
+  const half = inner * 0.0508; // half the stroke width
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      let best = Infinity;
+      for (const [a, b] of segs) {
+        const d = distToSeg(x + 0.5, y + 0.5, a[0], a[1], b[0], b[1]);
+        if (d < best) best = d;
       }
+      const cov = Math.max(0, Math.min(1, half + 0.5 - best)); // 1px AA edge
+      if (cov > 0) blend(x, y, 255, 255, 255, cov);
     }
   }
 
-  // accent dot (emerald) at top-right of the tallest bar
-  const cx = pad + inner * 0.7;
-  const cy = pad + inner * 0.2;
-  const cr = inner * 0.07;
-  for (let y = Math.floor(cy - cr); y <= cy + cr; y++) {
-    for (let x = Math.floor(cx - cr); x <= cx + cr; x++) {
-      const dx = x - cx;
-      const dy = y - cy;
-      if (dx * dx + dy * dy <= cr * cr && x >= 0 && y >= 0 && x < size && y < size) {
-        set(x, y, 0x34, 0xd3, 0x99);
-      }
+  // emerald accent dot at the start of the trend line
+  const dotR = inner * 0.0586;
+  for (let y = Math.floor(P0[1] - dotR - 1); y <= P0[1] + dotR + 1; y++) {
+    for (let x = Math.floor(P0[0] - dotR - 1); x <= P0[0] + dotR + 1; x++) {
+      const d = Math.hypot(x + 0.5 - P0[0], y + 0.5 - P0[1]);
+      const cov = Math.max(0, Math.min(1, dotR + 0.5 - d));
+      if (cov > 0) blend(x, y, 0x34, 0xd3, 0x99, cov);
     }
   }
 
