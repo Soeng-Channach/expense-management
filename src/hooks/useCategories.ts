@@ -20,7 +20,13 @@ export function useCategories(type?: TransactionType) {
   );
 
   const sorted = useMemo(
-    () => [...categories].sort((a, b) => a.name.localeCompare(b.name)),
+    () =>
+      [...categories].sort((a, b) => {
+        // Pin "Other" to the end of each list; sort the rest alphabetically.
+        if (a.name === 'Other') return b.name === 'Other' ? 0 : 1;
+        if (b.name === 'Other') return -1;
+        return a.name.localeCompare(b.name);
+      }),
     [categories]
   );
 
