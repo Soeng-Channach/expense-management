@@ -13,7 +13,9 @@ import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Dropdown } from '@/components/ui/Dropdown';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { CurrencyConvertModal } from '@/components/settings/CurrencyConvertModal';
 import { currencySymbol } from '@/lib/format';
+import { CURRENCIES, currencyName } from '@/lib/currency';
 import { useTheme } from '@/context/ThemeContext';
 import { useSettings } from '@/hooks/useSettings';
 import { useToast } from '@/context/ToastContext';
@@ -26,23 +28,6 @@ import {
 import { downloadJSON, readFileAsText } from '@/lib/download';
 import { cn } from '@/lib/cn';
 import type { BackupFile } from '@/types';
-
-const CURRENCIES: { code: string; name: string }[] = [
-  { code: 'USD', name: 'US Dollar' },
-  { code: 'KHR', name: 'Cambodian Riel' },
-  { code: 'VND', name: 'Vietnamese Dong' },
-  { code: 'EUR', name: 'Euro' },
-  { code: 'GBP', name: 'British Pound' },
-  { code: 'JPY', name: 'Japanese Yen' },
-  { code: 'KRW', name: 'South Korean Won' },
-  { code: 'CNY', name: 'Chinese Yuan' },
-  { code: 'SGD', name: 'Singapore Dollar' },
-  { code: 'INR', name: 'Indian Rupee' },
-  { code: 'AUD', name: 'Australian Dollar' },
-  { code: 'CAD', name: 'Canadian Dollar' },
-  { code: 'CHF', name: 'Swiss Franc' },
-  { code: 'BRL', name: 'Brazilian Real' },
-];
 
 const currencyOptions = CURRENCIES.map((c) => {
   const symbol = currencySymbol(c.code);
@@ -90,10 +75,11 @@ function Toggle({ checked, onChange, label }: ToggleProps) {
 
 export function Settings() {
   const { darkMode, toggle } = useTheme();
-  const { settings, update } = useSettings();
+  const { settings } = useSettings();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [pendingImport, setPendingImport] = useState<BackupFile | null>(null);
+  const [pendingCurrency, setPendingCurrency] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -173,13 +159,17 @@ export function Settings() {
             </span>
             <div>
               <p className="text-sm font-medium text-content">Currency</p>
-              <p className="text-xs text-content-muted">Used across the app</p>
+              <p className="text-xs text-content-muted">
+                Using {currencyName(settings.currency)} ({settings.currency})
+              </p>
             </div>
           </div>
           <div className="w-36">
             <Dropdown
               value={settings.currency}
-              onChange={(currency) => update({ currency })}
+              onChange={(next) =>
+                next !== settings.currency && setPendingCurrency(next)
+              }
               options={currencyOptions}
               menuClassName="right-0 w-64"
             />
@@ -232,6 +222,13 @@ export function Settings() {
           </div>
         </div>
       </Card>
+
+      <CurrencyConvertModal
+        open={pendingCurrency !== null}
+        from={settings.currency}
+        to={pendingCurrency ?? ''}
+        onClose={() => setPendingCurrency(null)}
+      />
 
       <ConfirmDialog
         open={pendingImport !== null}

@@ -6,14 +6,24 @@ export function formatCurrency(
   opts: { signed?: boolean; compact?: boolean } = {}
 ): string {
   const { signed = false, compact = false } = opts;
-  const formatter = new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency,
+  const fractionDigits = {
     minimumFractionDigits: compact ? 0 : 2,
     maximumFractionDigits: compact ? 1 : 2,
-    notation: compact ? 'compact' : 'standard',
-  });
-  const formatted = formatter.format(Math.abs(amount));
+    notation: compact ? ('compact' as const) : ('standard' as const),
+  };
+  let formatted: string;
+  try {
+    formatted = new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency,
+      ...fractionDigits,
+    }).format(Math.abs(amount));
+  } catch {
+    // Unknown/empty currency code — fall back to a plain formatted number.
+    formatted = new Intl.NumberFormat(undefined, fractionDigits).format(
+      Math.abs(amount)
+    );
+  }
   if (signed && amount !== 0) return `${amount > 0 ? '+' : '−'}${formatted}`;
   return formatted;
 }

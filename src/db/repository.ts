@@ -74,6 +74,34 @@ export async function updateSettings(
   await db.settings.update(1, changes);
 }
 
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * Switches the active currency to `to`. When `rate` is provided (and not 1),
+ * every transaction amount, budget and the default budget is multiplied by it
+ * so figures are re-expressed in the new currency. Runs atomically.
+ */
+export async function convertCurrency(to: string, rate?: number): Promise<void> {
+  await ensureSettings();
+  const apply = rate != null && rate > 0 && rate !== 1;
+  await db.transaction('rw', db.transactions, db.budgets, db.settings, async () => {
+    if (apply) {
+      await db.transactions.toCollection().modify((t) => {
+        t.amount = round2(t.amount * rate!);
+      });
+      await db.budgets.toCollection().modify((b) => {
+        b.amount = round2(b.amount * rate!);
+      });
+    }
+    const settings = await db.settings.get(1);
+    const defaultBudget =
+      apply && settings?.defaultBudget != null
+        ? round2(settings.defaultBudget * rate!)
+        : settings?.defaultBudget;
+    await db.settings.update(1, { currency: to, defaultBudget });
+  });
+}
+
 /* --------------------------- Backup / Restore --------------------------- */
 
 export async function exportData(): Promise<BackupFile> {
