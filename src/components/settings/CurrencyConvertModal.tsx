@@ -18,6 +18,17 @@ interface CurrencyConvertModalProps {
 }
 
 /**
+ * Formats a suggested rate for the input: whole numbers for large rates
+ * (e.g. 4100), and enough significant digits for tiny rates (e.g. 0.0002439)
+ * so converting back doesn't lose precision.
+ */
+function formatRate(r: number): string {
+  if (r >= 100) return String(Math.round(r));
+  if (r >= 1) return String(Number(r.toFixed(4)));
+  return String(Number(r.toPrecision(4)));
+}
+
+/**
  * Shown when the user picks a different currency. Lets them either convert all
  * stored amounts by an (editable, pre-filled) exchange rate, or just relabel
  * the currency symbol without touching the numbers.
@@ -35,8 +46,7 @@ export function CurrencyConvertModal({
   // Pre-fill a suggested rate each time the dialog opens for a new pair.
   useEffect(() => {
     if (!open || !to) return;
-    const r = defaultRate(from, to);
-    setRate(r >= 100 ? String(Math.round(r)) : String(Number(r.toFixed(4))));
+    setRate(formatRate(defaultRate(from, to)));
   }, [open, from, to]);
 
   const rateNum = parseFloat(rate);
